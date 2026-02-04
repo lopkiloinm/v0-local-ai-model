@@ -334,11 +334,11 @@ I can help with common LaTeX questions - try asking about tables, sections, list
               </div>
               <div className="flex items-center justify-between text-xs tabular-nums">
                 <span className="text-muted-foreground">
-                  {(downloadStats.downloadedBytes / (1024 * 1024)).toFixed(0)}/{(downloadStats.totalBytes / (1024 * 1024)).toFixed(0)} MB
+                  {(downloadStats.downloadedBytes / (1000 * 1000)).toFixed(0)}/{(downloadStats.totalBytes / (1000 * 1000)).toFixed(0)} MB
                 </span>
                 <span className="text-primary">
                   {downloadStats.speedBytesPerSecond > 0 
-                    ? `${(downloadStats.speedBytesPerSecond / (1024 * 1024)).toFixed(1)} MB/s`
+                    ? `${(downloadStats.speedBytesPerSecond / (1000 * 1000)).toFixed(1)} MB/s`
                     : "-- MB/s"}
                 </span>
               </div>

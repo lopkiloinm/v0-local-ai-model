@@ -38,8 +38,8 @@ OpenPrism is a **fully client-side AI LaTeX document editor** that runs entirely
 |---------|-------------|
 | 🤖 **Client-Side AI Chat** | Conversational AI assistant powered by LFM 2.5 1.2B via WebGPU—no API calls, no data leaving your device |
 | 📝 **Native LaTeX Editor** | Full-featured LaTeX editor with syntax highlighting, error diagnostics, and real-time validation |
-| 🔧 **Live Compilation** | Real-time LaTeX compilation with instant PDF preview—see changes as you type |
-| 📄 **Integrated PDF Preview** | Side-by-side document preview with synchronized scrolling |
+| 🔧 **Live Compilation** | Real-time LaTeX compilation with instant HTML preview—see changes as you type |
+| 📄 **Integrated Preview** | Side-by-side document preview with zoom controls |
 | 🎨 **Modern UI** | Clean, responsive interface inspired by professional IDEs—built with Radix UI & Tailwind |
 | 🌓 **Dark/Light Modes** | Built-in theme switching for comfortable long-work sessions |
 | 💾 **Browser-Based Storage** | All documents stored locally using IndexedDB—never transmitted to servers |
@@ -94,7 +94,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### First Run Walkthrough
 
 1. **WebGPU Detection**: The app automatically checks for WebGPU support
-2. **Model Download**: On first use, the LFM 2.5 1.2B ONNX model (~1.2GB) downloads to your browser cache
+2. **Model Download**: On first use, the LFM 2.5 1.2B ONNX model (~1.22 GB, ~1,220 MB) downloads to your browser cache
 3. **Instant Subsequent Access**: On next visit, the cached model loads instantly—no re-download
 4. **Start Writing**: Begin editing LaTeX and chatting with the AI immediately
 5. **Local Storage**: All documents saved to IndexedDB—persist across browser sessions
@@ -110,22 +110,22 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 │           Your Browser (Client-Side)             │
 ├──────────────────────────────────────────────────┤
 │                                                  │
-│  Next.js 16 + React 19 Application              │
-│  ├─ LaTeX Editor (Ace.js or Monaco)            │
-│  ├─ PDF Renderer (pdfjs-viewer)                 │
-│  ├─ AI Chat Interface                           │
-│  └─ Document Manager                            │
+│  Next.js 16 + React 19 Application               │
+│  ├─ LaTeX Editor (Custom with syntax highlighting)│
+│  ├─ LaTeX Renderer (latex.js → HTML)             │
+│  ├─ AI Chat Interface                            │
+│  └─ File Explorer                                │
 │                                                  │
-│  WebGPU Runtime Layer                           │
-│  ├─ Transformers.js (Hugging Face)             │
-│  ├─ LFM 2.5 1.2B-Instruct-ONNX                 │
-│  ├─ ONNX Runtime Web                           │
-│  └─ GPU Acceleration (WebGPU)                   │
+│  WebGPU Runtime Layer                            │
+│  ├─ Transformers.js (Hugging Face)               │
+│  ├─ LFM 2.5 1.2B-Instruct-ONNX                   │
+│  ├─ ONNX Runtime Web                             │
+│  └─ GPU Acceleration (WebGPU)                    │
 │                                                  │
-│  Storage Layer                                  │
-│  ├─ IndexedDB (Document Storage)               │
-│  ├─ Cache API (Model Files)                    │
-│  └─ LocalStorage (Settings)                    │
+│  Storage Layer                                   │ 
+│  ├─ IndexedDB (Document Storage)                 │
+│  ├─ Cache API (Model Files)                      │
+│  └─ LocalStorage (Settings)                      │
 │                                                  │
 └──────────────────────────────────────────────────┘
    ↕️ (No External Communication)
@@ -139,9 +139,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | **AI Runtime** | Transformers.js | Hugging Face framework for browser-based inference |
 | **Model** | LFM 2.5 1.2B-Instruct-ONNX | Small, optimized language model for edge devices |
 | **GPU Acceleration** | WebGPU | Direct GPU compute in browser (30-50% latency reduction vs WebGL) |
-| **Model Format** | ONNX (Quantized Q4) | Cross-platform inference, ~1.2GB compressed |
-| **LaTeX Engine** | typst-js or LaTeX.js | Client-side document compilation |
-| **PDF Rendering** | PDF.js | Browser-native PDF viewer |
+| **Model Format** | ONNX (Quantized Q4) | Cross-platform inference, ~1.22 GB (~1,220 MB) compressed |
+| **LaTeX Engine** | latex.js | Client-side LaTeX to HTML rendering |
+| **Theme System** | next-themes | Dark/light mode support |
+| **Icons** | lucide-react | Icon library |
+| **Notifications** | sonner | Toast notifications |
+| **Resizable Panels** | react-resizable-panels | Resizable UI panels |
 | **UI Components** | Radix UI + Tailwind CSS | Accessible, responsive design system |
 | **Storage** | IndexedDB + Cache API | Persistent local storage without server sync |
 
@@ -158,7 +161,7 @@ Unlike traditional web AI apps that require cloud servers, OpenPrism uses **WebG
 - **LFM 2.5 1.2B Model**:
   - 1.2B parameters (20x smaller than larger models)
   - 239 tokens/second on CPU, faster with GPU
-  - Q4 quantization (4-bit) reduces size to ~1.2GB
+  - Q4 quantization (4-bit) reduces size to ~1.22 GB (~1,220 MB)
   - Optimized for inference, not training
   - Excellent for LaTeX generation, editing suggestions, and document analysis
 
@@ -254,7 +257,7 @@ Unlike traditional web AI apps that require cloud servers, OpenPrism uses **WebG
 │ Instant Access           ✅         ❌        ✅                 │
 │ Deploy Anywhere          ❌         ✅        ✅                 │
 │ No API Keys              ✅         ✅        ✅                 │
-│ Vendor Lock-In Risk      ✅ HIGH    ⚠️ MED   ✅ NONE            │
+│ Vendor Lock-In Risk      ✅ HIGH    ⚠️ MED    ❌ NONE            │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -275,7 +278,7 @@ OpenPrism operates under a **zero-knowledge architecture**:
 
 ### Model Caching
 
-- First visit: LFM 2.5 ONNX model (~1.2GB) downloads to browser Cache API
+- First visit: LFM 2.5 ONNX model (~1.22 GB, ~1,220 MB) downloads to browser Cache API
 - Subsequent visits: Model loads instantly from cache (no re-download)
 - Storage: Entirely within your browser's local storage quota
 - Control: Users can clear cache manually via browser settings
@@ -376,34 +379,35 @@ npm run start
 ```
 openprism/
 ├── app/
-│   ├── page.tsx              # Main editor page
-│   ├── layout.tsx            # Root layout with providers
-│   └── api/                  # Optional: serverless functions
+│   ├── page.tsx              # Main IDE layout page
+│   ├── layout.tsx            # Root layout with theme provider
+│   └── globals.css           # Global styles
 ├── components/
-│   ├── editor/
-│   │   ├── latex-editor.tsx  # Editor component
-│   │   ├── pdf-preview.tsx   # PDF viewer component
+│   ├── ide/                  # IDE-specific components
+│   │   ├── ide-layout.tsx    # Main IDE layout container
+│   │   ├── latex-editor.tsx  # LaTeX editor with syntax highlighting
+│   │   ├── pdf-preview.tsx   # LaTeX preview panel (latex.js HTML renderer)
 │   │   ├── ai-chat.tsx       # AI chat sidebar
-│   │   └── status-bar.tsx    # Compilation status
-│   ├── ui/
-│   │   ├── sidebar.tsx       # Navigation sidebar
-│   │   ├── toolbar.tsx       # Top toolbar
-│   │   └── panels.tsx        # Resizable panels
-│   └── providers.tsx         # Context providers
+│   │   ├── file-explorer.tsx # File tree explorer
+│   │   ├── terminal.tsx      # Terminal component
+│   │   └── resizable-panel.tsx # Resizable panel system
+│   ├── ui/                   # Reusable UI components (Radix UI + Tailwind)
+│   │   ├── button.tsx
+│   │   ├── dialog.tsx
+│   │   ├── input.tsx
+│   │   └── [50+ components]  # Full component library
+│   └── theme-provider.tsx    # Dark/light theme provider
 ├── lib/
 │   ├── webgpu-model.ts       # WebGPU model loading & inference
-│   ├── latex-compiler.ts     # LaTeX compilation
-│   ├── storage.ts            # IndexedDB storage layer
-│   └── utils.ts              # Helper utilities
+│   └── utils.ts              # Helper utilities (cn, etc.)
 ├── hooks/
-│   ├── useModel.ts           # WebGPU model hook
-│   ├── useEditor.ts          # Editor state management
-│   └── useDocument.ts        # Document storage hook
+│   ├── use-mobile.ts         # Mobile detection hook
+│   └── use-toast.ts          # Toast notification hook
 ├── styles/
-│   └── globals.css           # Tailwind styles
+│   └── globals.css           # Additional global styles
 └── public/
-    ├── models/               # Model files (optional local)
-    └── assets/               # Images, fonts, etc.
+    ├── icon.svg              # App icons
+    └── [placeholder images]  # Static assets
 ```
 
 ### Available Scripts
@@ -422,39 +426,78 @@ npm run test      # Run test suite (if configured)
 #### Using the WebGPU Model
 
 ```typescript
-import { useModel } from '@/hooks/useModel'
+import {
+  checkWebGPUSupport,
+  isModelLoaded,
+  generateChatResponse,
+  setProgressCallback,
+} from '@/lib/webgpu-model'
 
 export function AIChat() {
-  const { model, loading, error, chat } = useModel()
+  const [messages, setMessages] = useState([])
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  useEffect(() => {
+    // Check WebGPU support
+    checkWebGPUSupport().then(supported => {
+      if (!supported) {
+        console.warn('WebGPU not available')
+      }
+    })
+
+    // Set download progress callback
+    setProgressCallback((progress) => {
+      console.log(`Download: ${progress}%`)
+    })
+  }, [])
 
   const handleMessage = async (message: string) => {
-    const response = await chat(message)
-    console.log(response)
+    if (!isModelLoaded()) {
+      console.error('Model not loaded yet')
+      return
+    }
+
+    setIsGenerating(true)
+    try {
+      const response = await generateChatResponse(message, messages)
+      setMessages(prev => [...prev, response])
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
     <div>
-      {loading && <p>Loading model...</p>}
-      {error && <p>Error: {error}</p>}
-      {model && <button onClick={() => handleMessage('Hello!')}>Chat</button>}
+      {!isModelLoaded() && <p>Loading model...</p>}
+      {isGenerating && <p>Generating...</p>}
+      <button onClick={() => handleMessage('Hello!')}>Chat</button>
     </div>
   )
 }
 ```
 
-#### Document Storage
+#### LaTeX Compilation
 
 ```typescript
-import { useDocument } from '@/hooks/useDocument'
+import { useState, useEffect } from 'react'
+import { compile } from '@/components/ide/pdf-preview'
 
-export function Editor() {
-  const { document, save, load } = useDocument(documentId)
+export function LaTeXEditor() {
+  const [content, setContent] = useState('\\documentclass{article}...')
+  const [preview, setPreview] = useState('')
+
+  useEffect(() => {
+    // Compile LaTeX on content change
+    compile(content).then(html => {
+      setPreview(html)
+    })
+  }, [content])
 
   return (
-    <textarea
-      value={document.content}
-      onChange={(e) => save({ ...document, content: e.target.value })}
-    />
+    <div>
+      <textarea value={content} onChange={e => setContent(e.target.value)} />
+      <div dangerouslySetInnerHTML={{ __html: preview }} />
+    </div>
   )
 }
 ```
@@ -500,9 +543,9 @@ if (device) {
 
 ### Memory Usage
 
-- **Model Loading**: ~1.2-1.5 GB (ONNX format, cached)
+- **Model Loading**: ~1.22 GB (~1,220 MB) (ONNX format, cached)
 - **Runtime Memory**: ~800 MB - 1.2 GB (depending on context window)
-- **Browser Cache**: ~1.2 GB (persists across sessions)
+- **Browser Cache**: ~1.22 GB (~1,220 MB) (persists across sessions)
 - **IndexedDB Storage**: ~500 MB - 2 GB (documents and metadata)
 
 ### Recommended Hardware
@@ -532,12 +575,23 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## 📚 Resources & Documentation
 
+### Core Technologies
 - **WebGPU Spec**: [w3.org/TR/webgpu](https://www.w3.org/TR/webgpu/)
 - **Transformers.js**: [huggingface.co/docs/transformers.js](https://huggingface.co/docs/transformers.js)
 - **LFM 2.5 Model**: [huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct](https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct)
 - **ONNX Runtime Web**: [github.com/microsoft/onnxruntime](https://github.com/microsoft/onnxruntime-web)
 - **Next.js**: [nextjs.org/docs](https://nextjs.org/docs)
-- **Radix UI**: [radix-ui.com](https://radix-ui.com)
+
+### UI & Components
+- **Radix UI**: [radix-ui.com](https://radix-ui.com) - Accessible component primitives
+- **Tailwind CSS**: [tailwindcss.com](https://tailwindcss.com) - Utility-first CSS framework
+- **next-themes**: [github.com/pacocoursey/next-themes](https://github.com/pacocoursey/next-themes) - Theme switching
+- **lucide-react**: [lucide.dev](https://lucide.dev) - Icon library
+- **sonner**: [github.com/emilkowalski/sonner](https://github.com/emilkowalski/sonner) - Toast notifications
+- **react-resizable-panels**: [github.com/bvaughn/react-resizable-panels](https://github.com/bvaughn/react-resizable-panels) - Resizable panel system
+
+### LaTeX & Document Processing
+- **latex.js**: [github.com/michael-brade/LaTeX.js](https://github.com/michael-brade/LaTeX.js) - LaTeX to HTML renderer
 
 ---
 

@@ -83,7 +83,14 @@ export function ResizablePanel({
         className={cn("overflow-hidden", panelClassName)}
         style={{
           [isHorizontal ? "width" : "height"]: `${size}%`,
+          [isHorizontal ? "minWidth" : "minHeight"]: 0,
+          [isHorizontal ? "maxWidth" : "maxHeight"]: `${size}%`,
           flexShrink: 0,
+          flexGrow: 0,
+          boxSizing: 'border-box',
+          [isHorizontal ? "overflowX" : "overflowY"]: 'hidden',
+          [isHorizontal ? "overflowY" : "overflowX"]: 'auto',
+          contain: 'layout style size'
         }}
       >
         {children[0]}

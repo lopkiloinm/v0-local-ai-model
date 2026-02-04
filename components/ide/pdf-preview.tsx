@@ -10,140 +10,202 @@ interface PDFPreviewProps {
   className?: string
 }
 
-// Load latex.js from CDN
-function loadLatexJS(): Promise<any> {
-  return new Promise((resolve, reject) => {
-    // Check if already loaded
-    if ((window as any).latexjs) {
-      resolve((window as any).latexjs)
-      return
-    }
-
-    const script = document.createElement("script")
-    script.src = "https://cdn.jsdelivr.net/npm/latex.js@0.12.6/dist/latex.min.js"
-    script.async = true
-    script.onload = () => {
-      if ((window as any).latexjs) {
-        resolve((window as any).latexjs)
-      } else {
-        reject(new Error("latex.js loaded but not available on window"))
-      }
-    }
-    script.onerror = () => reject(new Error("Failed to load latex.js from CDN"))
-    document.head.appendChild(script)
-  })
-}
-
 export function PDFPreview({ latexContent, className }: PDFPreviewProps) {
   const [zoom, setZoom] = useState(100)
   const [isCompiling, setIsCompiling] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [compileTime, setCompileTime] = useState<number | null>(null)
-  const compileTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const lastContentRef = useRef<string>("")
   const latexjsRef = useRef<any>(null)
 
   // Load latex.js on mount
   useEffect(() => {
-    loadLatexJS()
-      .then((latexjs) => {
+    async function loadLatexJS() {
+      try {
+        // Import latex.js - it exports parse and HtmlGenerator
+        const latexjs = await import("latex.js")
+        // latex.js exports: parse, HtmlGenerator, Generator, etc.
         latexjsRef.current = latexjs
         setIsLoading(false)
-        console.log("[v0] latex.js loaded successfully")
-      })
-      .catch((err) => {
-        console.error("[v0] Failed to load latex.js:", err)
-        setError("Failed to load LaTeX engine")
+        console.log("[OpenPrism] latex.js loaded successfully", Object.keys(latexjs))
+      } catch (err) {
+        console.error("[OpenPrism] Failed to load latex.js:", err)
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        setError(`Failed to load LaTeX engine: ${errorMessage}. Check browser console for details.`)
         setIsLoading(false)
-      })
+      }
+    }
+    
+    // Only load if not already loaded (prevents re-loading on Fast Refresh)
+    if (!latexjsRef.current) {
+      loadLatexJS()
+    } else {
+      console.log("[OpenPrism] latex.js already loaded, skipping reload")
+      setIsLoading(false)
+    }
   }, [])
 
   const compile = useCallback(async (content: string, force = false) => {
-    if (!iframeRef.current || !latexjsRef.current) return
-    if (!force && content === lastContentRef.current) return
+    // Auto-recover from missing refs (e.g., after Fast Refresh)
+    if (!latexjsRef.current) {
+      console.warn("[OpenPrism] latexjs ref lost, reloading...")
+      setIsLoading(true)
+      try {
+        const latexjs = await import("latex.js")
+        latexjsRef.current = latexjs
+        setIsLoading(false)
+        console.log("[OpenPrism] Reloaded latex.js successfully")
+        // Continue with compilation after reload
+      } catch (err) {
+        console.error("[OpenPrism] Failed to reload latex.js:", err)
+        setIsLoading(false)
+        setError("LaTeX engine not available. Please try again.")
+        return
+      }
+    }
+    
+    if (!iframeRef.current) {
+      console.warn("[OpenPrism] iframe ref not available - iframe may not be mounted yet")
+      setError("Preview iframe not ready. The iframe may still be mounting. Please wait a moment and try again.")
+      setIsCompiling(false)
+      return
+    }
+    
+    // Always compile if force=true (retry button), or if content changed
+    const contentChanged = content !== lastContentRef.current
+    if (!force && !contentChanged) {
+      console.log("[OpenPrism] Skipping compilation: content unchanged and not forced")
+      return
+    }
+    
+    console.log("[OpenPrism] Starting compilation", { force, contentChanged, contentLength: content.length })
     
     setIsCompiling(true)
     setError(null)
     const startTime = performance.now()
+    
+    // Clear iframe content before starting (important for retries after errors)
+    const iframe = iframeRef.current
+    if (iframe) {
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+        if (iframeDoc) {
+          iframeDoc.open()
+          iframeDoc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body></body></html>')
+          iframeDoc.close()
+        }
+      } catch (e) {
+        // Ignore errors when clearing iframe - it might not be accessible
+        console.warn("[OpenPrism] Could not clear iframe:", e)
+      }
+    }
 
     try {
       const latexjs = latexjsRef.current
       
-      // Parse and generate HTML
-      const generator = latexjs.parse(content, { generator: new latexjs.HtmlGenerator({ hyphenate: false }) })
-      const doc = generator.htmlDocument()
-      
-      // Serialize to string
-      const serializer = new XMLSerializer()
-      let htmlString = serializer.serializeToString(doc)
-      
-      // Inject zoom styling and latex.js CSS
-      const zoomStyle = `<style>
-        body { 
-          transform: scale(${zoom / 100}); 
-          transform-origin: top left; 
-          width: ${10000 / zoom}%;
-          margin: 0;
-          padding: 20px;
-          font-family: "Computer Modern Serif", serif;
-        }
-      </style>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/latex.js@0.12.6/dist/css/base.css">
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/latex.js@0.12.6/dist/css/article.css">`
-      htmlString = htmlString.replace('</head>', `${zoomStyle}</head>`)
-      
-      // Write to iframe
-      const iframe = iframeRef.current
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
-      
-      if (iframeDoc) {
-        iframeDoc.open()
-        iframeDoc.write(htmlString)
-        iframeDoc.close()
+      if (!latexjs) {
+        throw new Error("LaTeX engine not loaded. Please wait for initialization.")
       }
 
-      // Only update lastContentRef on successful compile
+      // latex.js usage
+      // latex.js exports: parse, HtmlGenerator, Generator
+      // According to docs: parse returns the generator, then call htmlDocument() on it
+      const { parse, HtmlGenerator } = latexjs
+      
+      if (!parse || typeof parse !== 'function') {
+        throw new Error("latex.js parse function not found")
+      }
+      
+      if (!HtmlGenerator || typeof HtmlGenerator !== 'function') {
+        throw new Error("latex.js HtmlGenerator not found")
+      }
+
+      // Create a fresh generator instance for each compilation
+      // This ensures clean state even after errors
+      // According to latex.js docs, reset() should be called before creating a second document
+      // But creating a new instance is safer and ensures complete clean state
+      const generator = new HtmlGenerator({
+        hyphenate: true,
+      })
+      
+      // Reset the generator to ensure clean state (though we're using a new instance)
+      // This is extra safety in case generator state persists somehow
+      if (typeof generator.reset === 'function') {
+        generator.reset()
+      }
+
+      // Parse LaTeX - parse() returns the generator itself
+      // If parsing fails, it will throw a SyntaxError
+      let resultGenerator
+      try {
+        console.log("[OpenPrism] Parsing LaTeX content...")
+        resultGenerator = parse(content, { generator })
+        console.log("[OpenPrism] LaTeX parsed successfully")
+      } catch (parseError: any) {
+        // latex.js throws SyntaxError for parse errors
+        console.error("[OpenPrism] Parse error:", parseError)
+        if (parseError && parseError.name === 'SyntaxError') {
+          throw new Error(`LaTeX syntax error: ${parseError.message || 'Invalid LaTeX syntax'}`)
+        }
+        throw parseError
+      }
+      
+      // Get the HTML document from the generator
+      // Use CDN baseURL for assets (CSS, JS, fonts) since we don't have them locally
+      // latex.js version from package.json should match the CDN version
+      const baseURL = "https://cdn.jsdelivr.net/npm/latex.js@0.12.6/dist/"
+      const htmlDocument = resultGenerator.htmlDocument(baseURL)
+      
+      // Apply zoom transform to the document
+      const body = htmlDocument.body
+      if (body) {
+        body.style.transform = `scale(${zoom / 100})`
+        body.style.transformOrigin = 'top left'
+        body.style.width = `${100 / (zoom / 100)}%`
+      }
+
+      // Serialize the complete HTML document
+      const htmlString = htmlDocument.documentElement.outerHTML
+      
+      // Write to iframe
+      // Clear any previous content first to ensure clean state
+      const iframe = iframeRef.current
+      if (!iframe) {
+        throw new Error("Preview iframe not available")
+      }
+      
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+      if (!iframeDoc) {
+        throw new Error("Cannot access iframe document")
+      }
+      
+      // Clear previous content and write new content
+      iframeDoc.open()
+      iframeDoc.write(htmlString)
+      iframeDoc.close()
+
+      // Only update lastContentRef on successful compilation
+      // This allows retries to work even if content hasn't changed
       lastContentRef.current = content
       setCompileTime(Math.round(performance.now() - startTime))
       setError(null)
+      console.log("[OpenPrism] Compilation successful")
     } catch (err) {
-      console.error("[v0] LaTeX compilation error:", err)
+      console.error("[OpenPrism] LaTeX compilation error:", err)
       const message = err instanceof Error ? err.message : "Compilation failed"
       setError(message)
+      // IMPORTANT: Don't update lastContentRef on error
+      // This ensures retry will work even if content appears the same
+      console.log("[OpenPrism] Compilation failed, lastContentRef not updated to allow retry")
     } finally {
       setIsCompiling(false)
     }
   }, [zoom])
 
-  // Debounced compilation on content change
-  useEffect(() => {
-    if (isLoading) return
-    
-    if (compileTimeoutRef.current) {
-      clearTimeout(compileTimeoutRef.current)
-    }
-
-    compileTimeoutRef.current = setTimeout(() => {
-      // Force recompile if there was an error
-      compile(latexContent, error !== null)
-    }, 600)
-
-    return () => {
-      if (compileTimeoutRef.current) {
-        clearTimeout(compileTimeoutRef.current)
-      }
-    }
-  }, [latexContent, compile, isLoading, error])
-
-  // Recompile on zoom change
-  useEffect(() => {
-    if (isLoading) return
-    if (lastContentRef.current) {
-      compile(latexContent, true) // Force recompile
-    }
-  }, [zoom, latexContent, compile, isLoading])
+  // Manual compilation only - no automatic compilation
+  // Compilation will only happen when user clicks the compile button
 
   const handleDownloadTex = () => {
     const blob = new Blob([latexContent], { type: "text/x-tex" })
@@ -156,6 +218,15 @@ export function PDFPreview({ latexContent, className }: PDFPreviewProps) {
   }
 
   const handleRecompile = () => {
+    console.log("[OpenPrism] Retry button clicked, forcing recompile")
+    console.log("[OpenPrism] Refs check:", {
+      iframe: !!iframeRef.current,
+      latexjs: !!latexjsRef.current,
+      contentLength: latexContent.length
+    })
+    // Always force recompile when retry is clicked
+    // Clear error state first to ensure clean retry
+    setError(null)
     compile(latexContent, true)
   }
 
@@ -241,18 +312,18 @@ export function PDFPreview({ latexContent, className }: PDFPreviewProps) {
               </Button>
             </div>
           </div>
-        ) : (
-          <div className="p-4 flex justify-center">
-            <div className="bg-white shadow-lg max-w-[8.5in] w-full">
-              <iframe
-                ref={iframeRef}
-                className="w-full min-h-[11in] border-0"
-                title="LaTeX Preview"
-                sandbox="allow-same-origin"
-              />
-            </div>
+        ) : null}
+        {/* Always render iframe (even when error) so ref is always available */}
+        <div className="p-4 flex justify-center" style={{ display: error ? 'none' : 'flex' }}>
+          <div className="bg-white shadow-lg max-w-[8.5in] w-full">
+            <iframe
+              ref={iframeRef}
+              className="w-full min-h-[11in] border-0"
+              title="LaTeX Preview"
+              sandbox="allow-same-origin allow-scripts"
+            />
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

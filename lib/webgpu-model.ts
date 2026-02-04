@@ -7,8 +7,8 @@ const MODEL_DTYPE = "q4"; // Use Q4 for WebGPU (recommended)
 
 // Model files to download
 const MODEL_FILES = [
-  "onnx/model_q4.onnx", // ~173 KB
-  "onnx/model_q4.onnx_data", // ~1.22 GB
+  "onnx/model_q4.onnx", // 172,944 bytes (~173 KB)
+  "onnx/model_q4.onnx_data", // 1,217,650,688 bytes (~1,217.65 MB = ~1.22 GB)
 ];
 
 // Hugging Face CDN base URL
@@ -42,7 +42,9 @@ async function loadTransformers() {
     // Disable worker threads for browser compatibility
     transformers.env.useBrowserCache = true;
     transformers.env.allowLocalModels = false;
-    transformers.env.backends.onnx.wasm.numThreads = 1;
+    if (transformers.env.backends?.onnx?.wasm) {
+      transformers.env.backends.onnx.wasm.numThreads = 1;
+    }
     
     AutoModelForCausalLM = transformers.AutoModelForCausalLM;
     AutoTokenizer = transformers.AutoTokenizer;
@@ -105,7 +107,7 @@ export function getDownloadStats(): DownloadStats {
  * Check if WebGPU is available
  */
 export function checkWebGPUSupport(): boolean {
-  if (typeof window === "undefined" || typeof navigator === "undefined" || !navigator.gpu) {
+  if (typeof window === "undefined" || typeof navigator === "undefined" || !('gpu' in navigator)) {
     return false;
   }
   return true;
@@ -164,7 +166,7 @@ async function downloadFileWithProgress(
   const contentLength = response.headers.get('content-length');
   const total = contentLength ? parseInt(contentLength, 10) : 0;
   let loaded = 0;
-  const chunks: Uint8Array[] = [];
+  const chunks: BlobPart[] = [];
   
   // Speed calculation
   let lastTime = performance.now();
@@ -254,9 +256,10 @@ async function loadModel(): Promise<void> {
       
       if (needsDownload) {
         // Use known file sizes to avoid HEAD request latency
+        // Actual file sizes from Hugging Face
         const fileSizes = [
-          173 * 1024, // ~173 KB for model_q4.onnx
-          1.22 * 1024 * 1024 * 1024, // ~1.22 GB for model_q4.onnx_data
+          172944, // model_q4.onnx (172,944 bytes = ~173 KB)
+          1217650688, // model_q4.onnx_data (1,217,650,688 bytes = ~1,217.65 MB = ~1.22 GB)
         ];
         const totalSize = fileSizes[0] + fileSizes[1];
         
@@ -418,7 +421,9 @@ export async function generateChatResponse(
   }
 
   // Simple system prompt - the model already knows LaTeX
-  const systemPrompt = `You are a helpful LaTeX assistant for OpenPrism, a private document editor. Help users write and debug LaTeX documents. Be concise.${context ? `\n\nUser's document:\n${context.slice(0, 600)}` : ''}`;
+  // Use up to 3000 characters of context (~750 tokens) - enough for a full LaTeX section
+  // while staying within typical 2048-4096 token context windows for 1.2B models
+  const systemPrompt = `You are a helpful LaTeX assistant for OpenPrism, a private document editor. Help users write and debug LaTeX documents. Be concise.${context ? `\n\nUser's document:\n${context.slice(0, 3000)}` : ''}`;
 
   const messages = [
     { role: "system", content: systemPrompt },

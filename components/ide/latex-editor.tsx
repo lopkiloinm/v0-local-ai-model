@@ -149,6 +149,17 @@ export function LaTeXEditor({ content, onChange, fileName, onClose, isDirty }: L
   const [cursorLine, setCursorLine] = useState(0)
 
   const lines = useMemo(() => content.split("\n"), [content])
+  
+  // Calculate width based on longest line using ch units (character width in monospace)
+  // This is more stable and predictable than pixel measurements
+  const contentWidthCh = useMemo(() => {
+    if (lines.length === 0) return 80 // Default minimum
+    
+    const longestLine = lines.reduce((max, line) => line.length > max.length ? line : max, lines[0])
+    // Use ch units: 1ch = width of '0' in monospace font
+    // Add generous padding (10ch on each side) to ensure all text is selectable
+    return Math.max(longestLine.length + 20, 80)
+  }, [lines])
 
   const updateCursorLine = useCallback(() => {
     if (textareaRef.current) {
@@ -179,7 +190,7 @@ export function LaTeXEditor({ content, onChange, fileName, onClose, isDirty }: L
   }
 
   return (
-    <div className="h-full flex flex-col bg-editor-bg">
+    <div className="h-full flex flex-col bg-editor-bg" style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box' }}>
       {/* Tab bar */}
       <div className="flex items-center bg-panel-header border-b border-border">
         <div className="flex items-center gap-2 px-3 py-1.5 bg-editor-bg border-r border-border text-sm">
@@ -199,12 +210,30 @@ export function LaTeXEditor({ content, onChange, fileName, onClose, isDirty }: L
         </div>
       </div>
 
-      {/* Editor area */}
+      {/* Editor area - fixed viewable width with horizontal scrolling */}
       <div 
         ref={editorContainerRef} 
-        className="flex-1 overflow-auto"
+        style={{ 
+          flex: '1 1 0%',
+          width: '100%',
+          minWidth: 0,
+          maxWidth: '100%',
+          overflowX: 'auto',
+          overflowY: 'auto',
+          position: 'relative',
+          display: 'block'
+        }}
       >
-        <div className="flex" style={{ minHeight: `${lines.length * 24 + 16}px` }}>
+        {/* Content panel - expands horizontally beyond viewable window */}
+        <div 
+          className="flex" 
+          style={{ 
+            minHeight: `${lines.length * 24 + 16}px`, 
+            width: 'max-content', 
+            minWidth: '100%',
+            position: 'relative'
+          }}
+        >
           {/* Line numbers gutter */}
           <div className="sticky left-0 flex-shrink-0 w-12 bg-editor-bg z-10 text-editor-line-number text-right text-sm font-mono select-none py-2 border-r border-border">
             {lines.map((_, i) => (
@@ -220,11 +249,12 @@ export function LaTeXEditor({ content, onChange, fileName, onClose, isDirty }: L
             ))}
           </div>
 
-          {/* Code area */}
-          <div className="relative min-w-fit flex-1">
+          {/* Code area - expands to fit content width */}
+          <div className="relative bg-editor-bg" style={{ width: `${contentWidthCh}ch`, minWidth: 'calc(100% - 3rem)' }}>
             {/* Syntax highlighted overlay */}
             <div
-              className="absolute inset-0 pointer-events-none font-mono text-sm whitespace-pre p-2"
+              className="absolute inset-0 pointer-events-none font-mono text-sm whitespace-pre p-2 z-0"
+              style={{ width: `${contentWidthCh}ch`, minWidth: '100%' }}
               aria-hidden="true"
             >
               {lines.map((line, i) => (
@@ -248,7 +278,13 @@ export function LaTeXEditor({ content, onChange, fileName, onClose, isDirty }: L
               onKeyDown={handleKeyDown}
               onKeyUp={updateCursorLine}
               onClick={updateCursorLine}
-              className="relative z-10 block w-full min-w-fit font-mono text-sm leading-6 p-2 bg-transparent text-transparent caret-foreground resize-none outline-none whitespace-pre overflow-hidden"
+              className="relative z-10 block font-mono text-sm leading-6 p-2 bg-transparent text-transparent caret-foreground resize-none outline-none whitespace-pre"
+              style={{ 
+                width: `${contentWidthCh}ch`,
+                minWidth: '100%',
+                overflow: 'hidden',
+                color: 'transparent'
+              }}
               spellCheck={false}
               wrap="off"
               rows={lines.length}
