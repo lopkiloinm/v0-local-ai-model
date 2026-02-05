@@ -205,8 +205,16 @@ export function PDFPreview({ latexContent, className }: PDFPreviewProps) {
     }
   }, [zoom])
 
-  // Manual compilation only - no automatic compilation
-  // Compilation will only happen when user clicks the compile button
+  // Auto-compile on mount and when content changes
+  useEffect(() => {
+    if (!isLoading && latexContent && latexjsRef.current && iframeRef.current) {
+      // Small delay to ensure iframe is fully ready
+      const timeoutId = setTimeout(() => {
+        compile(latexContent, false)
+      }, 100)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [latexContent, isLoading, compile])
 
   const handleDownloadTex = () => {
     const blob = new Blob([latexContent], { type: "text/x-tex" })

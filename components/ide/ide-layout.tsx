@@ -11,6 +11,7 @@ import { Settings, PanelLeftClose, PanelLeft, PanelBottomClose, PanelBottom, Spa
 import { Button } from "@/components/ui/button"
 
 const DEFAULT_LATEX_CONTENT = `\\documentclass{article}
+\\usepackage{hyperref}
 
 \\title{Welcome to OpenPrism}
 \\author{Your Name}
@@ -32,6 +33,97 @@ A \\textbf{private}, \\textbf{open-source} scientific writing workspace. Unlike 
   \\item \\textbf{Open Source} -- Audit the code yourself
   \\item \\textbf{AI Powered} -- Local WebGPU models, no cloud APIs
 \\end{itemize}
+
+\\section{Mathematical Examples}
+
+OpenPrism supports full LaTeX math rendering using KaTeX. Here are some examples:
+
+\\subsection{Inline Math}
+
+The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ for the equation $ax^2 + bx + c = 0$.
+
+The Fourier transform: $f(x) = \\int_{-\\infty}^\\infty \\hat f(\\xi)\\,e^{2 \\pi i \\xi x} \\, d\\xi$
+
+\\subsection{Display Math}
+
+The Euler-Lagrange equation:
+$$
+\\frac{d}{dt}\\frac{\\partial L}{\\partial \\dot{q}} = \\frac{\\partial L}{\\partial q}
+$$
+
+The Schrödinger equation:
+$$
+i\\hbar\\frac{\\partial}{\\partial t}\\Psi(\\mathbf{r}, t) = \\hat{H}\\Psi(\\mathbf{r}, t)
+$$
+
+\\subsection{Complex Equations}
+
+Matrix multiplication:
+$$
+\\mathbf{C} = \\mathbf{A} \\times \\mathbf{B} = \\begin{pmatrix}
+a_{11} & a_{12} \\\\
+a_{21} & a_{22}
+\\end{pmatrix}
+\\begin{pmatrix}
+b_{11} & b_{12} \\\\
+b_{21} & b_{22}
+\\end{pmatrix}
+$$
+
+Summation and integration:
+$$
+\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}, \\quad \\sum_{n=0}^{\\infty} \\frac{x^n}{n!} = e^x
+$$
+
+Piecewise functions:
+$$
+f(n) = \\begin{cases} \\frac{n}{2}, & \\text{if } n\\text{ is even} \\\\ 3n+1, & \\text{if } n\\text{ is odd} \\end{cases}
+$$
+
+\\section{Feature Comparison}
+
+\\begin{description}
+  \\item[Privacy] OpenPrism: $\\checkmark$ \\quad Cloud Alternatives: $\\times$
+  \\item[Local Processing] OpenPrism: $\\checkmark$ \\quad Cloud Alternatives: $\\times$
+  \\item[Offline Support] OpenPrism: $\\checkmark$ \\quad Cloud Alternatives: $\\times$
+\\end{description}
+
+\\section{Text Formatting}
+
+\\subsection{Fonts and Emphasis}
+
+\\textit{You can also \\emph{emphasize} text if it is set in italics,} \\textsf{in a \\emph{sans-serif} font,} \\texttt{or in \\emph{typewriter} style.}
+
+\\subsection{Special Characters}
+
+Special characters must be escaped: \\$ \\& \\% \\# \\_ \\{ \\} \\~{} \\^{} \\textbackslash
+
+Greek letters: $\\alpha, \\beta, \\gamma, \\delta, \\theta, \\lambda, \\mu, \\pi, \\sigma, \\omega$
+
+\\section{Environments}
+
+\\subsection{Lists}
+
+Nested lists work perfectly:
+
+\\begin{enumerate}
+  \\item First item
+  \\begin{itemize}
+    \\item Nested item
+    \\item Another nested item
+  \\end{itemize}
+  \\item Second item
+  \\begin{description}
+    \\item[Term] Definition
+    \\item[Another Term] Another definition
+  \\end{description}
+\\end{enumerate}
+
+\\subsection{Quotes}
+
+\\begin{quote}
+On average, no line should be longer than 66 characters.
+\\end{quote}
 
 \\section{Getting Started}
 

@@ -46,6 +46,24 @@ async function loadTransformers() {
       transformers.env.backends.onnx.wasm.numThreads = 1;
     }
     
+    // Suppress ONNX Runtime warnings about execution provider assignment
+    // This is normal - some nodes (shape ops) are intentionally assigned to CPU for performance
+    if (transformers.env.backends?.onnx) {
+      // Set log level to suppress warnings (0=verbose, 1=info, 2=warning, 3=error, 4=fatal)
+      // Note: transformers.js may not expose this directly, but we can try
+      try {
+        if (typeof window !== 'undefined' && (window as any).ort) {
+          // ONNX Runtime Web is available globally
+          const ort = (window as any).ort;
+          if (ort.env) {
+            ort.env.logLevel = 'warning'; // Only show warnings and above
+          }
+        }
+      } catch (e) {
+        // Ignore if ort is not available yet
+      }
+    }
+    
     AutoModelForCausalLM = transformers.AutoModelForCausalLM;
     AutoTokenizer = transformers.AutoTokenizer;
   }
