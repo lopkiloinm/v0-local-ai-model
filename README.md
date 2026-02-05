@@ -198,42 +198,42 @@ Unlike traditional web AI apps that require cloud servers, OpenPrism uses **WebG
 
 ---
 
-#### Prismer.ai (Open-Source)
+#### Overleaf (Cloud-Based)
 
-**What it requires:**
-- ✅ Open-source codebase
-- ❌ **Ollama.cpp** (local model server—requires installation and configuration)
-- ❌ **Python environment** (model dependencies and tools)
-- ❌ **LM Studio or similar** (alternative local inference engine)
-- ❌ **System administration overhead** (managing local services, GPU drivers, memory)
-- ❌ **Significant setup time** (30+ minutes for developers unfamiliar with model serving)
+**What it offers:**
+- ✅ Cloud-based LaTeX editor with real-time collaboration
+- ✅ Extensive template library
+- ✅ Built-in version control
+- ✅ Easy sharing and collaboration features
 
-**Pain Points:**
-- High barrier to entry for non-technical researchers
-- Requires powerful local hardware (GPU, 16GB+ RAM)
-- Need to manage model versions, quantization formats, ONNX optimizations
-- Complex troubleshooting (GPU driver issues, CUDA compatibility, etc.)
-- Not truly portable across devices
+**Limitations:**
+- ❌ **Cloud-based** (all documents stored on Overleaf servers)
+- ❌ **Requires internet connection** (no offline editing)
+- ❌ **Privacy concerns** (documents stored on external servers)
+- ❌ **Subscription costs** (free tier has limitations, paid plans for advanced features)
+- ❌ **No AI integration** (no built-in AI assistant)
+- ❌ **Vendor lock-in** (documents tied to Overleaf platform)
 
 ---
 
 ### Why OpenPrism is Different
 
-| Aspect | OpenAI Prism | Prismer.ai | **OpenPrism** |
-|--------|--------------|-----------|---------------|
-| **Data Collection** | ❌ Server-based (high risk) | ⚠️ Local (if properly deployed) | ✅ **Zero** (100% client-side) |
-| **Training Data Use** | ❌ Possible model training | ⚠️ Depends on deployment | ✅ **Impossible** (no external servers) |
-| **Setup Required** | ✅ None | ❌ Ollama + Python + config | ✅ **None** (just open browser) |
-| **Local Installation** | ❌ Cloud-based | ✅ Full installation | ✅ **Browser only** |
-| **Hardware Requirements** | ⚠️ Minimal (server-dependent) | ❌ Powerful GPU/16GB+ RAM | ✅ **Works everywhere** |
-| **Privacy Mode** | ❌ Not available | ✅ Available (if local) | ✅ **Always private** |
-| **Cost** | ⚠️ Free now, may be paid | ✅ Free | ✅ **Free forever** |
-| **Vendor Lock-in** | ✅ High (proprietary) | ⚠️ Medium (self-hosted) | ✅ **Zero** (open-source) |
-| **Offline Support** | ❌ No | ✅ Yes | ✅ **Yes** |
-| **Deployment** | ⚠️ Cloud (servers needed) | ❌ Complex | ✅ **Static hosting** (Vercel, Netlify) |
-| **Collaboration** | ✅ Built-in | ⚠️ Via git/exports | ✅ **Via git** (any platform) |
-| **Accessibility** | ✅ Zero friction | ❌ High friction | ✅ **Zero friction** |
-| **User Control** | ❌ Limited | ✅ Complete | ✅ **Complete** |
+| Aspect | OpenAI Prism | Overleaf | **OpenPrism** |
+|--------|--------------|----------|---------------|
+| **Data Collection** | ❌ Server-based (high risk) | ❌ Server-based (cloud storage) | ✅ **Zero** (100% client-side) |
+| **Training Data Use** | ❌ Possible model training | ⚠️ Unlikely but possible | ✅ **Impossible** (no external servers) |
+| **Setup Required** | ✅ None | ✅ None (account signup) | ✅ **None** (just open browser) |
+| **Local Installation** | ❌ Cloud-based | ❌ Cloud-based | ✅ **Browser only** |
+| **Hardware Requirements** | ⚠️ Minimal (server-dependent) | ⚠️ Minimal (server-dependent) | ✅ **Works everywhere** |
+| **Privacy Mode** | ❌ Not available | ❌ Not available | ✅ **Always private** |
+| **Cost** | ⚠️ Free now, may be paid | ⚠️ Free tier, paid plans | ✅ **Free forever** |
+| **Vendor Lock-in** | ✅ High (proprietary) | ✅ High (cloud platform) | ✅ **Zero** (open-source) |
+| **Offline Support** | ❌ No | ❌ No | ✅ **Yes** |
+| **Deployment** | ⚠️ Cloud (servers needed) | ⚠️ Cloud (servers needed) | ✅ **Static hosting** (Vercel, Netlify) |
+| **Collaboration** | ✅ Built-in | ✅ Built-in (real-time) | ✅ **Via git** (any platform) |
+| **AI Integration** | ✅ Built-in (GPT-5.2) | ❌ No | ✅ **Built-in** (local WebGPU) |
+| **Accessibility** | ✅ Zero friction | ✅ Zero friction | ✅ **Zero friction** |
+| **User Control** | ❌ Limited | ⚠️ Medium (export available) | ✅ **Complete** |
 
 ---
 
@@ -241,23 +241,23 @@ Unlike traditional web AI apps that require cloud servers, OpenPrism uses **WebG
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    OpenAI Prism  Prismer  OpenPrism             │
+│                    OpenAI Prism  Overleaf OpenPrism             │
 ├─────────────────────────────────────────────────────────────────┤
-│ Zero Setup               ✅         ❌        ✅                 │
-│ No Data Transmission     ❌         ✅        ✅                 │
-│ No Python Required       ✅         ❌        ✅                 │
-│ Private by Default       ❌         ✅        ✅                 │
-│ Works Offline            ❌         ✅        ✅                 │
-│ Open Source              ❌         ✅        ✅                 │
-│ Free Forever             ⚠️         ✅        ✅                 │
-│ AI Context Awareness     ✅         ✅        ✅                 │
+│ Zero Setup               ✅         ✅        ✅                 │
+│ No Data Transmission     ❌         ❌        ✅                 │
+│ No Python Required       ✅         ✅        ✅                 │
+│ Private by Default       ❌         ❌        ✅                 │
+│ Works Offline            ❌         ❌        ✅                 │
+│ Open Source              ❌         ❌        ✅                 │
+│ Free Forever             ⚠️         ⚠️        ✅                 │
+│ AI Context Awareness     ✅         ❌        ✅                 │
 │ LaTeX Compilation        ✅         ✅        ✅                 │
 │ Real-Time Preview        ✅         ✅        ✅                 │
-│ Collaboration Features   ✅         ⚠️        ✅ (via git)       │
-│ Instant Access           ✅         ❌        ✅                 │
-│ Deploy Anywhere          ❌         ✅        ✅                 │
+│ Collaboration Features   ✅         ✅        ✅ (via git)       │
+│ Instant Access           ✅         ✅        ✅                 │
+│ Deploy Anywhere          ❌         ❌        ✅                 │
 │ No API Keys              ✅         ✅        ✅                 │
-│ Vendor Lock-In Risk      ✅ HIGH    ⚠️ MED    ❌ NONE            │
+│ Vendor Lock-In Risk      ✅ HIGH    ✅ HIGH   ❌ NONE            │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
