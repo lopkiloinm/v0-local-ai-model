@@ -153,8 +153,9 @@ export function PDFPreview({ latexContent, className }: PDFPreviewProps) {
       }
       
       // Get the HTML document from the generator
-      // Use CDN baseURL for assets (CSS, JS, fonts) since we don't have them locally
-      // latex.js version from package.json should match the CDN version
+      // Use CDN baseURL for assets (CSS, JS, fonts)
+      // Note: Iframe sandbox may block external CDN resources on Vercel
+      // The sandbox attribute restricts iframe from loading external resources
       const baseURL = "https://cdn.jsdelivr.net/npm/latex.js@0.12.6/dist/"
       const htmlDocument = resultGenerator.htmlDocument(baseURL)
       
